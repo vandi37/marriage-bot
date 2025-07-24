@@ -13,7 +13,7 @@ export async function formatMarriages(user: User | ChatFullInfo, marriages: Marr
     });
 
     const marriageStrings = await Promise.all(promises);
-    return s + marriageStrings.join('')+ `\n\n$📑 Страница №${page}`;
+    return s + marriageStrings.join('')+ `\n\n📑 Страница №${page}`;
 }
 export function generateKeyboard(userId: number, offset: number) {
     return new InlineKeyboard()
