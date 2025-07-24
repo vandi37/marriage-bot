@@ -26,7 +26,7 @@ export function generateMention(mention: User | string | ChatFullInfo) {
 }
 
 export function stringifyMention(mention: User | string) {
-    if (typeof mention === 'string') return escape(mention);
+    if (typeof mention === 'string') return mention;
     return `${mention.id}`
 }
 export function parseMention(s: string) {
