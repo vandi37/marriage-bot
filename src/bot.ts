@@ -13,6 +13,7 @@ import {
     requestMarriageText
 } from "./textNbuttons";
 import logger, {objByCtx} from './logger'
+import escape from "./escape";
 
 const CREATOR = Number(process.env.CREATOR!)
 
@@ -55,9 +56,9 @@ bot.command('help', async (ctx) => {
         'браки — посмотреть все свои браки\n' +
         'брак {id} — посмотреть конкретный брак по индентификатору\n' +
         'стата — посмотреть общую статистику бота (колчество браков и уникальных пользователей)\n\n' +
-        `В боте доступен инлайн режим. если написать в любом чате @${bot.botInfo.username} — то появится возможность посмотреть все браки\n` +
-        `Если написать в любом чате@${bot.botInfo.username} @{username} — то вы сможете сделать предложение пользователю не добавляя бота в чат` +
-        `И наконец если написать в любом чате @${bot.botInfo.username} {id} — то появится выбор между просмотром и разводом по индетификатору брака`)
+        `В боте доступен инлайн режим. если написать в любом чате @${escape(bot.botInfo.username)} — то появится возможность посмотреть все браки\n` +
+        `Если написать в любом чате@${escape(bot.botInfo.username)} @{username} — то вы сможете сделать предложение пользователю не добавляя бота в чат` +
+        `И наконец если написать в любом чате @${escape(escape(bot.botInfo.username))} {id} — то появится выбор между просмотром и разводом по индетификатору брака`)
     logger.silly('Sent help info', objByCtx(ctx))
 })
 
@@ -360,8 +361,8 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
 
 bot.catch(async (err) => {
     logger.error('an error in the bot', {name: err.name, message: err.message, err: err.error})
-    await bot.api.sendMessage(CREATOR, `❌ Ошиюка в работае бота: ${err.name}\n\n${err.message}\n`
-        + `\`\`\`\n${err.error}${err.stack ?? ''}\`\`\``)
+    await bot.api.sendMessage(CREATOR, `❌ Ошиюка в работае бота: ${escape(err.name)}\n\n${escape(err.message)}\n`
+        + `\`\`\`\n${escape(JSON.stringify(err.error))}${escape(err.stack ?? '')}\`\`\``, {parse_mode: 'MarkdownV2'})
 })
 
 process.once('SIGINT', () => bot.stop());

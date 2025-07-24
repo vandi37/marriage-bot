@@ -20,13 +20,13 @@ export function getMention(ctx: Context) {
 }
 
 export function generateMention(mention: User | string | ChatFullInfo) {
-    if (typeof mention === 'string') return `@${mention}`;
+    if (typeof mention === 'string') return `@${escape(mention)}`;
     if (mention.username !== undefined) return `[${escape(mention.first_name ?? mention.title)}](t.me/${mention.username})`
     return `[${escape(mention.first_name ?? mention.title)}](tg://user?id=${mention.id})`
 }
 
 export function stringifyMention(mention: User | string) {
-    if (typeof mention === 'string') return `${mention}`;
+    if (typeof mention === 'string') return escape(mention);
     return `${mention.id}`
 }
 export function parseMention(s: string) {
