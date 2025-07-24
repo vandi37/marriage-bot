@@ -138,7 +138,15 @@ bot.hears(/^браки$/i, async (ctx) => {
 bot.hears(/^брак\s(\d+)$/i, async (ctx) => {
     if (ctx.message === undefined) return
     const [_, marriageId] = ctx.match
-    const marriage = await Marriage.findByPk(+marriageId)
+    const marriage = await Marriage.findOne({
+        where: {
+            id: +marriageId,
+            [Op.or]: [
+                {user1: ctx.from.id},
+                {user2: ctx.from.id}
+            ]
+        },
+    })
     if (marriage === null) {
         await ctx.reply('❌ У тебя нет брака с этим id')
         logger.debug('User has no marriages with this id', {...objByCtx(ctx), marriageId})
