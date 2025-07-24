@@ -14,7 +14,7 @@ export function requestMarriageButtons(mention: string | User, from: User) {
         .text('💔 Отказаться', `deny_${from.id}_${stringifyMention(mention)}`)
 }
 export function divorceText(from: User, other: ChatFullInfo) {
-    return `😰 ${generateMention(from)}, вы уверены, что хотете развестись с ${generateMention(other)}`
+    return `😰 ${generateMention(from)}, вы уверены, что хотите развестись с ${generateMention(other)}`
 }
 export function divorceButtons(marriageId: any) {
     return new InlineKeyboard()

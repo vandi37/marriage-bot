@@ -58,7 +58,9 @@ bot.command('help', async (ctx) => {
         'стата — посмотреть общую статистику бота (количество браков и уникальных пользователей)\n\n' +
         `В боте доступен инлайн режим. если написать в любом чате @${escape(bot.botInfo.username)} — то появится возможность посмотреть все браки\n` +
         `Если написать в любом чате@${escape(bot.botInfo.username)} @{username} — то вы сможете сделать предложение пользователю не добавляя бота в чат` +
-        `И наконец если написать в любом чате @${escape(escape(bot.botInfo.username))} {id} — то появится выбор между просмотром и разводом по индетификатору брака`)
+        `И наконец если написать в любом чате @${escape(escape(bot.botInfo.username))} {id} — то появится выбор между просмотром и разводом по индетификатору брака`, {
+            parse_mode: 'MarkdownV2'
+        })
     logger.silly('Sent help info', objByCtx(ctx))
 })
 
@@ -179,7 +181,7 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
         user2: ctx.from.id,
     })
 
-    await ctx.editMessageText(`💍 зарегестрирован брак \\#\`${id}\`\\.\n${generateMention(ctx.from)} принял предложение о браке с ${generateMention(sender)}`, {
+    await ctx.editMessageText(`💍 зарегистрирован брак \\#\`${id}\`\\.\n${generateMention(ctx.from)} принял предложение о браке с ${generateMention(sender)}`, {
         reply_markup: new InlineKeyboard(),
         parse_mode: 'MarkdownV2',
         link_preview_options: {
@@ -361,7 +363,7 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
 
 bot.catch(async (err) => {
     logger.error('an error in the bot', {name: err.name, message: err.message, err: err.error})
-    await bot.api.sendMessage(CREATOR, `❌ Ошиюка в работае бота: ${escape(err.name)}\n\n${escape(err.message)}\n`
+    await bot.api.sendMessage(CREATOR, `❌ Ошибка в работе бота: ${escape(err.name)}\n\n${escape(err.message)}\n`
         + `\`\`\`\n${escape(JSON.stringify(err.error))}${escape(err.stack ?? '')}\`\`\``, {parse_mode: 'MarkdownV2'})
 })
 
