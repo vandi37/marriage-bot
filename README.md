@@ -1,4 +1,11 @@
-# marriage bot
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)
+![Grammy](https://img.shields.io/badge/Grammy-3776AB?style=for-the-badge&logo=telegram&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)
+![Sequelize](https://img.shields.io/badge/Sequelize-52B0E7?style=for-the-badge&logo=sequelize&logoColor=white)
+![Goose](https://img.shields.io/badge/Goose-000000?style=for-the-badge&logo=go&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+# Marriage bot
 
 ## Project info
 
@@ -63,3 +70,14 @@
   docker-compose up --build # use -d, --detach for detach mode (running the container in background)
   ```
 
+## Technology stack
+
+The main language is [TypeScript](https://www.typescriptlang.org/)
+For the telegram bot client is [grammY](https://grammy.dev/)
+As a DBMS I used [SQLite](https://sqlite.org/)
+And a orm framework I used [Sequelize](https://sequelize.org/)
+For the migrations I used [goose](https://github.com/pressly/goose)
+
+## License 
+
+[Lisense](LICENSE)
