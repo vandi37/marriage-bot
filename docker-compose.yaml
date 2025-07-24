@@ -1,0 +1,23 @@
+services:
+  app:
+    build: .
+    volumes:
+      - ${DATABASE_PATH:-./data}:/db_data
+      - ${LOGS_PATH:-./logs}:/logs
+    environment:
+      - NODE_ENV=production
+      - DATABASE_PATH=/db_data/database.sqlite
+      - CREATOR=${CREATOR}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - LOG_PATH=/logs
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
+    depends_on:
+      migrations:
+        condition: service_completed_successfully
+    restart: unless-stopped
+  migrations:
+    image: gomicro/goose:latest
+    command: goose -dir /migrations sqlite3 /db_data/database.sqlite up
+    volumes:
+      - ${DATABASE_PATH:-./data}:/db_data
+      - ${MIGRATIONS_PATH:-./migrations}:/migrations
