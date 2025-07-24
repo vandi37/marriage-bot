@@ -72,11 +72,11 @@
 
 ## Technology stack
 
-The main language is [TypeScript](https://www.typescriptlang.org/)
-For the telegram bot client is [grammY](https://grammy.dev/)
-As a DBMS I used [SQLite](https://sqlite.org/)
-And a orm framework I used [Sequelize](https://sequelize.org/)
-For the migrations I used [goose](https://github.com/pressly/goose)
+- The main language is [TypeScript](https://www.typescriptlang.org/)
+- For the telegram bot client is [grammY](https://grammy.dev/)
+- As a DBMS I used [SQLite](https://sqlite.org/)
+- And a orm framework I used [Sequelize](https://sequelize.org/)
+- For the migrations I used [goose](https://github.com/pressly/goose)
 
 ## License 
 
