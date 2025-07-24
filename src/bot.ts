@@ -321,7 +321,7 @@ bot.inlineQuery(/^\s*@(\w+)$/, async (ctx) => {
         InlineQueryResultBuilder.article(
             `request_${escape(username)}`, '💍 Предложение',
             {
-                description: `Сделать предложение @${escape(username)}`,
+                description: `Сделать предложение @${username}`,
                 reply_markup: requestMarriageButtons(username, ctx.from),
             })
             .text(requestMarriageText(username, ctx.from), {
