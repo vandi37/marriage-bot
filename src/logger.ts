@@ -23,14 +23,7 @@ const fileFormat = winston.format.combine(
     winston.format.json()
 );
 
-const transports = [
-    new winston.transports.Console({
-        level: process.env.LOG_LEVEL || 'debug',
-        format: consoleFormat,
-        handleExceptions: true,
-        handleRejections: true,
-    }),
-
+const transports: winston.transport[] = [
     new DailyRotateFile({
         level: 'debug',
         dirname: path.join(LOG_PATH, 'debug'),
@@ -64,6 +57,15 @@ const transports = [
         format: fileFormat,
     }),
 ];
+
+if ((process.env.LOG_INTO_CONSOLE ?? '').toLowerCase() in ['on', 'yes', 'true', '1']) {
+    transports.push(new winston.transports.Console({
+        level: process.env.LOG_LEVEL || 'debug',
+        format: consoleFormat,
+        handleExceptions: true,
+        handleRejections: true,
+    }))
+}
 
 const logger = winston.createLogger({
     level: 'debug',
