@@ -104,7 +104,7 @@ bot.hears(/^\+брак(\s.+)?$/i, async (ctx) => {
 
 bot.hears(/^(развод)|(-брак)\s(\d+)$/i, async (ctx) => {
     if (ctx.message === undefined) return
-    const [_, marriageId] = ctx.match
+    const marriageId = ctx.match[2]
     const marriage = await Marriage.findOneWithUser(+marriageId, ctx.from.id)
     if (marriage === null) {
         await ctx.reply('❌ У тебя нет брака с этим id')
