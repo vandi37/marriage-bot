@@ -311,9 +311,9 @@ bot.inlineQuery(/^\s*@(\w+)$/, async (ctx) => {
     const [_, username] = ctx.match
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
-            `request_${username}`, '💍 Предложение',
+            `request_${escape(username)}`, '💍 Предложение',
             {
-                description: `Сделать предложение @${username}`,
+                description: `Сделать предложение @${escape(username)}`,
                 reply_markup: requestMarriageButtons(username, ctx.from),
             })
             .text(requestMarriageText(username, ctx.from), {
