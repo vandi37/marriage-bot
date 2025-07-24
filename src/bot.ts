@@ -102,7 +102,7 @@ bot.hears(/^\+брак(\s.+)?$/i, async (ctx) => {
 });
 
 
-bot.hears(/^(развод)|(-брак)\s(\d+)$/i, async (ctx) => {
+bot.hears(/^((развод)|(-брак))\s(\d+)$/i, async (ctx) => {
     if (ctx.message === undefined) return
     const marriageId = ctx.match[2]
     console.log(ctx.match)
