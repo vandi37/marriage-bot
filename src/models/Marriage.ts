@@ -31,11 +31,11 @@ class Marriage extends Model {
     public static async countUniqueUsers() {
         const result = await Marriage.findOne({
             attributes: [
-                [sequelize.literal(`select count(distinct user_id) from (
+                [sequelize.literal('(' + `select count(distinct user_id) from (
                     select user1 as user_id from marriages 
                     union 
                     select user2 as user_id from marriages
- ) as combined_users`), 'count']
+ ) as combined_users` + ')'), 'count']
             ],
             raw: true
         }) as {count: number} | null;
