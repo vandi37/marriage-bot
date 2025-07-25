@@ -3,7 +3,7 @@
 create table marriages (
     id integer primary key autoincrement,
     user1 bigint not null,
-    user2 bigint null,
+    user2 bigint not null,
     createdAt datetime not null default current_timestamp,
     updatedAt datetime not null default current_timestamp
 );
