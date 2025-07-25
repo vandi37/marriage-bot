@@ -14,6 +14,7 @@ import {
 } from "./textNbuttons";
 import logger, {objByCtx} from './logger'
 import escape from "./escape";
+import {v7 as uuid} from 'uuid';
 
 const CREATOR = Number(process.env.CREATOR!)
 
@@ -302,7 +303,7 @@ bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
 bot.inlineQuery(/^$/, async (ctx) => {
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
-            'view', '🧐 Ваши браки', {
+            uuid(), '🧐 Ваши браки', {
                 description: 'Посмотреть список ваших браков',
                 reply_markup: generateKeyboard(ctx.from.id, 0)})
             .text(await formatMarriages(ctx.from, await getMarriages(ctx.from.id, 0), bot, 1), {
@@ -319,7 +320,7 @@ bot.inlineQuery(/^\s*@(\w+)$/, async (ctx) => {
     const [_, username] = ctx.match
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
-            `request_${escape(username)}`, '💍 Предложение',
+            uuid(), '💍 Предложение',
             {
                 description: `Сделать предложение @${username}`,
                 reply_markup: requestMarriageButtons(username, ctx.from),
@@ -343,7 +344,7 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
 
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
-            `divorce_${marriageId}`, '💔 Развод', {
+            uuid(), '💔 Развод', {
                 description: `Развод в браке #${marriageId}`,
                 reply_markup: divorceButtons(marriageId),
             })
@@ -353,7 +354,7 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
                     is_disabled: true,
                 }}),
         InlineQueryResultBuilder.article(
-            `view_${marriageId}`,'🧐 Посмотреть брак', {
+            uuid(),'🧐 Посмотреть брак', {
                 description:`Посмотреть информацию о браке #${marriageId}`,
                 reply_markup: new InlineKeyboard()})
             .text(marriageInfoText(ctx.from, other, marriage.createdAt),  {
