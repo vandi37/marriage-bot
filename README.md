@@ -80,3 +80,7 @@
 ## Contact the creator
 
 [Telegram](https://t.me/vandi37)
+
+## Test the bot
+
+[Bot](https://t.me/maarriage_bot)
