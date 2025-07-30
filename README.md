@@ -75,7 +75,7 @@
 
 ## License 
 
-[License](LICENSE)
+[Creative Commons Zero v1.0 Universal](LICENSE)
 
 ## Contact the creator
 
