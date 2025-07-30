@@ -58,7 +58,6 @@
   - BOT_TOKEN=the token of your bot, that you can get in [bot father](https://t.me/BotFather)
   - DATABASE_PATH=your path for the database directory, where all the data would be stored, it's optional the default is ./data
   - LOG_PATH=your path for the logs directory, where all the logs would be stored, it's optional the default is ./logs
-  - LOG_INTO_CONSOLE=do you want to write the logs to the console, use on to turn on/true/yes/1 other values including not adding this variable are off
   - MIGRATIONS_PATH=the path to migrations, it's better to use the absolute path to marriage-bot/migrations, or you could use other migrations if you want to use some other migrations
 
 3. Run docker compose
