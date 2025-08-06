@@ -1,10 +1,10 @@
-import {Bot, InlineKeyboard, InlineQueryResultBuilder, InputFile} from 'grammy';
+import { Bot, GrammyError, InlineKeyboard, InlineQueryResultBuilder, InputFile } from 'grammy';
 import sequelize from './database';
 import Marriage from './models/Marriage';
-import {generateMention, getMention, loggerMention, matchesMention, parseMention} from "./mention";
-import {Op} from "sequelize";
+import { generateMention, getMention, loggerMention, matchesMention, parseMention } from "./mention";
+import { Op } from "sequelize";
 import humanizeDuration from "humanize-duration"
-import {formatMarriages, generateKeyboard, getMarriages, page} from "./formatMarriages";
+import { formatMarriages, generateKeyboard, getMarriages, page } from "./formatMarriages";
 import {
     divorceButtons,
     divorceText,
@@ -12,9 +12,11 @@ import {
     requestMarriageButtons,
     requestMarriageText
 } from "./textNbuttons";
-import logger, {objByCtx} from './logger'
+import logger, { objByCtx } from './logger'
 import escape from "./escape";
-import {v7 as uuid} from 'uuid';
+import { v7 as uuid } from 'uuid';
+import { AcceptedGiftTypes, ChatFullInfo } from 'grammy/types';
+import { getChatError } from './error';
 
 const CREATOR = Number(process.env.CREATOR!)
 
@@ -32,14 +34,14 @@ const start = async () => {
     await bot.api.setMyShortDescription(description);
     await bot.start({
         onStart: async () => {
-            logger.info('Bot started', {username: bot.botInfo.username})
+            logger.info('Bot started', { username: bot.botInfo.username })
         },
         drop_pending_updates: true
     })
 }
 
 start().catch((err) => {
-    logger.error('an error while starting te bot', {err})
+    logger.error('an error while starting te bot', { err })
     throw err
 })
 
@@ -64,15 +66,15 @@ bot.command('help', async (ctx) => {
 })
 
 bot.hears(/^все\sбраки$/i).filter(ctx => ctx.from?.id === CREATOR, async (ctx) => {
-    const all = await  Marriage.findAll();
+    const all = await Marriage.findAll();
     await ctx.replyWithDocument(new InputFile(Buffer.from(JSON.stringify(all.map(m => ({
-                id: m.id,
-                user1: m.user1,
-                user2: m.user2,
-                createdAt: m.createdAt,
-            })), null, 2)), 'data.json'), {
-            caption: '📚 Все браки'
-        }
+        id: m.id,
+        user1: m.user1,
+        user2: m.user2,
+        createdAt: m.createdAt,
+    })), null, 2)), 'data.json'), {
+        caption: '📚 Все браки'
+    }
     )
     logger.info('Creator requested all marriages', objByCtx(ctx))
 })
@@ -99,7 +101,7 @@ bot.hears(/^\+брак(\s.+)?$/i, async (ctx) => {
             is_disabled: true,
         }
     });
-    logger.debug('User requested marriage', {...objByCtx(ctx), mention: loggerMention(mention)})
+    logger.debug('User requested marriage', { ...objByCtx(ctx), mention: loggerMention(mention) })
 });
 
 
@@ -109,10 +111,10 @@ bot.hears(/^((развод)|(-брак))\s(\d+)$/i, async (ctx) => {
     const marriage = await Marriage.findOneWithUser(+marriageId, ctx.from.id)
     if (marriage === null) {
         await ctx.reply('❌ У тебя нет брака с этим id')
-        logger.debug('User has no marriages with this id', {...objByCtx(ctx), marriageId})
+        logger.debug('User has no marriages with this id', { ...objByCtx(ctx), marriageId })
         return
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
     await ctx.reply(divorceText(ctx.from, other), {
         reply_markup: divorceButtons(marriageId),
         parse_mode: 'MarkdownV2',
@@ -120,7 +122,7 @@ bot.hears(/^((развод)|(-брак))\s(\d+)$/i, async (ctx) => {
             is_disabled: true,
         }
     })
-    logger.debug('User is preparing to divorce', {...objByCtx(ctx), marriageId, otherId: other.id})
+    logger.debug('User is preparing to divorce', { ...objByCtx(ctx), marriageId, otherId: other.id })
 });
 
 bot.hears(/^браки$/i, async (ctx) => {
@@ -143,24 +145,24 @@ bot.hears(/^брак\s(\d+)$/i, async (ctx) => {
         where: {
             id: +marriageId,
             [Op.or]: [
-                {user1: ctx.from.id},
-                {user2: ctx.from.id}
+                { user1: ctx.from.id },
+                { user2: ctx.from.id }
             ]
         },
     })
     if (marriage === null) {
         await ctx.reply('❌ У тебя нет брака с этим id')
-        logger.debug('User has no marriages with this id', {...objByCtx(ctx), marriageId})
+        logger.debug('User has no marriages with this id', { ...objByCtx(ctx), marriageId })
         return
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
-    await ctx.reply(marriageInfoText(ctx.from, other, marriage.createdAt),  {
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
+    await ctx.reply(marriageInfoText(ctx.from, other, marriage.createdAt), {
         parse_mode: 'MarkdownV2',
         link_preview_options: {
             is_disabled: true,
         }
     })
-    logger.debug('User got information about marriage', {...objByCtx(ctx),  marriage: marriage})
+    logger.debug('User got information about marriage', { ...objByCtx(ctx), marriage: marriage })
 })
 
 bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
@@ -171,8 +173,8 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
-    const sender = await bot.api.getChat(+senderId);
-    if (await Marriage.marriageExists(+senderId,ctx.from.id)) {
+    const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
+    if (await Marriage.marriageExists(+senderId, ctx.from.id)) {
         await ctx.editMessageText(`❌ ${generateMention(ctx.from)} и ${generateMention(sender)} уже вместе`, {
             reply_markup: new InlineKeyboard(),
             parse_mode: 'MarkdownV2',
@@ -180,10 +182,10 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
                 is_disabled: true,
             }
         })
-        logger.debug('User is already married', {...objByCtx(ctx), otherId: sender.id})
+        logger.debug('User is already married', { ...objByCtx(ctx), otherId: sender.id })
         return
     }
-    const {id} = await Marriage.create({
+    const { id } = await Marriage.create({
         user1: sender.id,
         user2: ctx.from.id,
     })
@@ -195,7 +197,7 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    logger.debug('User got married', {...objByCtx(ctx), marriageId: id, senderId: sender.id})
+    logger.debug('User got married', { ...objByCtx(ctx), marriageId: id, senderId: sender.id })
 });
 bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
     const [_, senderId, mention] = ctx.match;
@@ -204,7 +206,7 @@ bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
-    const sender = await bot.api.getChat(+senderId);
+    const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
     await ctx.editMessageText(`💔 ${generateMention(sender)}, ${generateMention(ctx.from)} отказался от вашего предложения`, {
         reply_markup: new InlineKeyboard(),
         parse_mode: 'MarkdownV2',
@@ -212,7 +214,7 @@ bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    logger.debug('User denied marring request', {...objByCtx(ctx), senderId: sender.id})
+    logger.debug('User denied marring request', { ...objByCtx(ctx), senderId: sender.id })
 })
 bot.callbackQuery(/^divorce_(\d+)$/, async (ctx) => {
     const [_, marriageId] = ctx.match;
@@ -222,14 +224,14 @@ bot.callbackQuery(/^divorce_(\d+)$/, async (ctx) => {
             where: {
                 id: +marriageId,
                 [Op.or]: [
-                    {user1: ctx.from.id},
-                    {user2: ctx.from.id}
+                    { user1: ctx.from.id },
+                    { user2: ctx.from.id }
                 ]
             },
             transaction
         })
         if (marriage === null) return null;
-        await marriage.destroy({transaction})
+        await marriage.destroy({ transaction })
         return marriage
     });
     if (marriage === null) {
@@ -237,20 +239,20 @@ bot.callbackQuery(/^divorce_(\d+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return null
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
     const russianDuration = humanizeDuration(marriage.createdAt.valueOf() - Date.now(), {
         language: 'ru',
         largest: 2
     })
     await ctx.editMessageText(
         `💔 ${generateMention(other)}, сожалеем\\.\n${generateMention(ctx.from)} подал на развод\\.\\.\\. Ваш брак просуществовал ${russianDuration}`, {
-            reply_markup: new InlineKeyboard(),
-            parse_mode: 'MarkdownV2',
-            link_preview_options: {
-                is_disabled: true,
-            }
-        })
-    logger.debug('User divorces', {...objByCtx(ctx), otherId: other.id, marriageId: marriage.id})
+        reply_markup: new InlineKeyboard(),
+        parse_mode: 'MarkdownV2',
+        link_preview_options: {
+            is_disabled: true,
+        }
+    })
+    logger.debug('User divorces', { ...objByCtx(ctx), otherId: other.id, marriageId: marriage.id })
 })
 bot.callbackQuery(/^divorce_deny_(\d+)$/, async (ctx) => {
     const [_, marriageId] = ctx.match;
@@ -259,8 +261,8 @@ bot.callbackQuery(/^divorce_deny_(\d+)$/, async (ctx) => {
         where: {
             id: +marriageId,
             [Op.or]: [
-                {user1: ctx.from.id},
-                {user2: ctx.from.id}
+                { user1: ctx.from.id },
+                { user2: ctx.from.id }
             ]
         }
     })
@@ -269,7 +271,7 @@ bot.callbackQuery(/^divorce_deny_(\d+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
     await ctx.editMessageText(`💕 ${generateMention(ctx.from)}, ваш брак с ${generateMention(other)} сохранен`, {
         reply_markup: new InlineKeyboard(),
         parse_mode: 'MarkdownV2',
@@ -277,7 +279,7 @@ bot.callbackQuery(/^divorce_deny_(\d+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    logger.debug('User canceled divorce request', {...objByCtx(ctx), marriageId: marriage.id, otherId: other.id})
+    logger.debug('User canceled divorce request', { ...objByCtx(ctx), marriageId: marriage.id, otherId: other.id })
 })
 
 bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
@@ -287,8 +289,8 @@ bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
         await ctx.answerCallbackQuery()
         return
     }
-    const text = await formatMarriages(await bot.api.getChat(+userId), marriages, bot, page(+offset))
-    const keyboard =  generateKeyboard(+userId, 0)
+    const text = await formatMarriages(await bot.api.getChat(+userId).catch(getChatError(+userId)), marriages, bot, page(+offset))
+    const keyboard = generateKeyboard(+userId, 0)
 
     await ctx.editMessageText(text, {
         reply_markup: keyboard,
@@ -297,22 +299,23 @@ bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    logger.debug('User watched next page of marriages', {...objByCtx(ctx), page: page(+offset), viewingId: +userId})
+    logger.debug('User watched next page of marriages', { ...objByCtx(ctx), page: page(+offset), viewingId: +userId })
 })
 
 bot.inlineQuery(/^$/, async (ctx) => {
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
             uuid(), '🧐 Ваши браки', {
-                description: 'Посмотреть список ваших браков',
-                reply_markup: generateKeyboard(ctx.from.id, 0)})
+            description: 'Посмотреть список ваших браков',
+            reply_markup: generateKeyboard(ctx.from.id, 0)
+        })
             .text(await formatMarriages(ctx.from, await getMarriages(ctx.from.id, 0), bot, 1), {
                 parse_mode: 'MarkdownV2',
                 link_preview_options: {
                     is_disabled: true,
                 },
             }),
-    ], {cache_time: 1})
+    ], { cache_time: 1 })
     logger.debug('Sent inline query with paginated marriages info', objByCtx(ctx))
 })
 
@@ -331,7 +334,7 @@ bot.inlineQuery(/^\s*@(\w+)$/, async (ctx) => {
                     is_disabled: true,
                 }
             })
-    ], {cache_time: 1})
+    ], { cache_time: 1 })
     logger.debug('Sent inline query with marriage request', objByCtx(ctx))
 })
 
@@ -339,39 +342,43 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
     const [_, marriageId] = ctx.match
     const marriage = await Marriage.findOneWithUser(+marriageId, ctx.from.id)
     if (marriage === null) return
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
 
 
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
             uuid(), '💔 Развод', {
-                description: `Развод в браке #${marriageId}`,
-                reply_markup: divorceButtons(marriageId),
-            })
+            description: `Развод в браке #${marriageId}`,
+            reply_markup: divorceButtons(marriageId),
+        })
             .text(divorceText(ctx.from, other), {
                 parse_mode: 'MarkdownV2',
                 link_preview_options: {
                     is_disabled: true,
-                }}),
+                }
+            }),
         InlineQueryResultBuilder.article(
-            uuid(),'🧐 Посмотреть брак', {
-                description:`Посмотреть информацию о браке #${marriageId}`,
-                reply_markup: new InlineKeyboard()})
-            .text(marriageInfoText(ctx.from, other, marriage.createdAt),  {
+            uuid(), '🧐 Посмотреть брак', {
+            description: `Посмотреть информацию о браке #${marriageId}`,
+            reply_markup: new InlineKeyboard()
+        })
+            .text(marriageInfoText(ctx.from, other, marriage.createdAt), {
                 parse_mode: 'MarkdownV2',
                 link_preview_options: {
                     is_disabled: true,
                 }
             })
-    ], {cache_time: 1})
-    logger.debug('Sent inline query with divorce request and marriage info', {...objByCtx(ctx), marriageId, otherId: other.id})
+    ], { cache_time: 1 })
+    logger.debug('Sent inline query with divorce request and marriage info', { ...objByCtx(ctx), marriageId, otherId: other.id })
 })
 
 
+
+
 bot.catch(async (err) => {
-    logger.error('an error in the bot', {name: err.name, message: err.message, err: err.error})
+    logger.error('an error in the bot', { name: err.name, message: err.message, err: err.error })
     await bot.api.sendMessage(CREATOR, `❌ Ошибка в работе бота: ${escape(err.name)}\n\n${escape(err.message)}\n`
-        + `\`\`\`\n${escape(JSON.stringify(err.error))}${escape(err.stack ?? '')}\`\`\``, {parse_mode: 'MarkdownV2'})
+        + `\`\`\`\n${escape(JSON.stringify(err.error))}${escape(err.stack ?? '')}\`\`\``, { parse_mode: 'MarkdownV2' })
 })
 
 process.once('SIGINT', () => bot.stop());
