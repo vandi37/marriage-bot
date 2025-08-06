@@ -196,6 +196,7 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
+    if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start`})
     logger.debug('User got married', {...objByCtx(ctx), marriageId: id, senderId: sender.id})
 });
 bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
