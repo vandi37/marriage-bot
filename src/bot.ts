@@ -370,7 +370,7 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
 
 
 bot.catch(async (err) => {
-    logger.error('an error in the bot', {name: err.name, message: err.message, err: err.error})
+    logger.error('an error in the bot', {name: err.name, message: err.message, err: err.error, stack: err.stack})
     await bot.api.sendMessage(CREATOR, `❌ Ошибка в работе бота: ${escape(err.name)}\n\n${escape(err.message)}\n`
         + `\`\`\`\n${escape(JSON.stringify(err.error))}${escape(err.stack ?? '')}\`\`\``, {parse_mode: 'MarkdownV2'})
 })
