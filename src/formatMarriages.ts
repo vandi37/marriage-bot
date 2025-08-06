@@ -3,12 +3,13 @@ import Marriage from "./models/Marriage";
 import {generateMention} from "./mention";
 import {ChatFullInfo, User} from "grammy/types";
 import {Op} from "sequelize";
+import { getChatError } from "./error";
 
 export async function formatMarriages(user: User | ChatFullInfo, marriages: Marriage[], bot: Bot, page: number) {
     let s = `📚 Браки ${generateMention(user)}\n`;
     const promises = marriages.map(async (marriage) => {
         const otherId = marriage.user1 === user.id ? marriage.user2 : marriage.user1;
-        const other = await bot.api.getChat(otherId);
+        const other = await bot.api.getChat(otherId).catch(getChatError(otherId));
         return `\n\\#\`${marriage.id}\` с ${generateMention(other)}`;
     });
 

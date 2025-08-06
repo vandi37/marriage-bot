@@ -15,6 +15,7 @@ import {
 import logger, {objByCtx} from './logger'
 import escape from "./escape";
 import {v7 as uuid} from 'uuid';
+import { getChatError } from './error';
 
 const CREATOR = Number(process.env.CREATOR!)
 
@@ -112,7 +113,7 @@ bot.hears(/^((развод)|(-брак))\s(\d+)$/i, async (ctx) => {
         logger.debug('User has no marriages with this id', {...objByCtx(ctx), marriageId})
         return
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1))
     await ctx.reply(divorceText(ctx.from, other), {
         reply_markup: divorceButtons(marriageId),
         parse_mode: 'MarkdownV2',
@@ -153,7 +154,7 @@ bot.hears(/^брак\s(\d+)$/i, async (ctx) => {
         logger.debug('User has no marriages with this id', {...objByCtx(ctx), marriageId})
         return
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
     await ctx.reply(marriageInfoText(ctx.from, other, marriage.createdAt),  {
         parse_mode: 'MarkdownV2',
         link_preview_options: {
@@ -171,7 +172,7 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
-    const sender = await bot.api.getChat(+senderId);
+    const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
     if (await Marriage.marriageExists(+senderId,ctx.from.id)) {
         await ctx.editMessageText(`❌ ${generateMention(ctx.from)} и ${generateMention(sender)} уже вместе`, {
             reply_markup: new InlineKeyboard(),
@@ -204,7 +205,7 @@ bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
-    const sender = await bot.api.getChat(+senderId);
+    const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
     await ctx.editMessageText(`💔 ${generateMention(sender)}, ${generateMention(ctx.from)} отказался от вашего предложения`, {
         reply_markup: new InlineKeyboard(),
         parse_mode: 'MarkdownV2',
@@ -237,7 +238,7 @@ bot.callbackQuery(/^divorce_(\d+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return null
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
     const russianDuration = humanizeDuration(marriage.createdAt.valueOf() - Date.now(), {
         language: 'ru',
         largest: 2
@@ -269,7 +270,7 @@ bot.callbackQuery(/^divorce_deny_(\d+)$/, async (ctx) => {
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
     await ctx.editMessageText(`💕 ${generateMention(ctx.from)}, ваш брак с ${generateMention(other)} сохранен`, {
         reply_markup: new InlineKeyboard(),
         parse_mode: 'MarkdownV2',
@@ -287,7 +288,7 @@ bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
         await ctx.answerCallbackQuery()
         return
     }
-    const text = await formatMarriages(await bot.api.getChat(+userId), marriages, bot, page(+offset))
+    const text = await formatMarriages(await bot.api.getChat(+userId).catch(getChatError(+userId)), marriages, bot, page(+offset))
     const keyboard =  generateKeyboard(+userId, 0)
 
     await ctx.editMessageText(text, {
@@ -339,7 +340,7 @@ bot.inlineQuery(/^(\d+)$/, async (ctx) => {
     const [_, marriageId] = ctx.match
     const marriage = await Marriage.findOneWithUser(+marriageId, ctx.from.id)
     if (marriage === null) return
-    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1);
+    const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1))
 
 
     await ctx.answerInlineQuery([
