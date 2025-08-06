@@ -7,7 +7,7 @@ export function getChatError(id: number): (err: any) => ChatFullInfo {
             return {
                 id,
                 type: "private",
-                first_name: 'ошибка получения пользователя',
+                first_name: 'ошибка получения пользователя. скорее всего пользователь слишком долго не пользовался ботом',
             } as ChatFullInfo.PrivateChat
         throw err
     }
