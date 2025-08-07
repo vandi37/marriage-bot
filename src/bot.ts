@@ -4,7 +4,7 @@ import Marriage from './models/Marriage';
 import {generateMention, getMention, loggerMention, matchesMention, parseMention} from "./mention";
 import {Op} from "sequelize";
 import humanizeDuration from "humanize-duration"
-import {formatMarriages, generateKeyboard, getMarriages, page} from "./formatMarriages";
+import {formatMarriages, generateKeyboard, getMarriages, offset} from "./formatMarriages";
 import {
     divorceButtons,
     divorceText,
@@ -127,7 +127,7 @@ bot.hears(/^((развод)|(-брак))\s(\d+)$/i, async (ctx) => {
 bot.hears(/^браки$/i, async (ctx) => {
     if (ctx.message === undefined) return
     await ctx.reply(await formatMarriages(ctx.from, await getMarriages(ctx.from.id, 0), bot, 1), {
-        reply_markup: generateKeyboard(ctx.from.id, 0),
+        reply_markup: generateKeyboard(ctx.from.id, 1),
         parse_mode: 'MarkdownV2',
         link_preview_options: {
             is_disabled: true,
@@ -282,15 +282,15 @@ bot.callbackQuery(/^divorce_deny_(\d+)$/, async (ctx) => {
     logger.debug('User canceled divorce request', {...objByCtx(ctx), marriageId: marriage.id, otherId: other.id})
 })
 
-bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
-    const [_, userId, offset] = ctx.match;
-    const marriages = await getMarriages(+userId, +offset);
+bot.callbackQuery(/^view_(\d+)_(\d+)$/, async (ctx) => {
+    const [_, userId, page] = ctx.match;
+    const marriages = await getMarriages(+userId, offset(+page));
     if (marriages.length === 0) {
         await ctx.answerCallbackQuery()
         return
     }
-    const text = await formatMarriages(await bot.api.getChat(+userId).catch(getChatError(+userId)), marriages, bot, page(+offset))
-    const keyboard =  generateKeyboard(+userId, 0)
+    const text = await formatMarriages(await bot.api.getChat(+userId).catch(getChatError(+userId)), marriages, bot, +page)
+    const keyboard =  generateKeyboard(+userId, +page)
 
     await ctx.editMessageText(text, {
         reply_markup: keyboard,
@@ -299,7 +299,7 @@ bot.callbackQuery(/^view_(\d+)_(-?\d+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    logger.debug('User watched next page of marriages', {...objByCtx(ctx), page: page(+offset), viewingId: +userId})
+    logger.debug('User watched next page of marriages', {...objByCtx(ctx), page: +page, viewingId: +userId})
 })
 
 bot.inlineQuery(/^$/, async (ctx) => {

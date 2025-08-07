@@ -16,11 +16,13 @@ export async function formatMarriages(user: User | ChatFullInfo, marriages: Marr
     const marriageStrings = await Promise.all(promises);
     return s + marriageStrings.join('')+ `\n\n📑 Страница №${page}`;
 }
-export function generateKeyboard(userId: number, offset: number) {
+export function generateKeyboard(userId: number, page: number) {
     return new InlineKeyboard()
-        .text('⬅️', `view_${userId}_${Math.max(offset - 10, -10)}`)
-        .text('➡️', `view_${userId}_${offset + 10}`)
+        .text('⬅️', `view_${userId}_${Math.max(page -1, 0)}`)
+        .text('➡️', `view_${userId}_${page + 1}`)
 }
+
+export const offset = (page: number) => 10 * (page - 1);
 
 export async function getMarriages(userId: number, offset: number) {
     if (offset < 0) return []
@@ -35,8 +37,4 @@ export async function getMarriages(userId: number, offset: number) {
         limit: 10,
         offset,
     })
-}
-
-export function page(offset: number) {
-    return Math.max(Math.floor(offset / 10), 0) + 1
 }
