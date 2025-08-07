@@ -307,7 +307,7 @@ bot.inlineQuery(/^$/, async (ctx) => {
         InlineQueryResultBuilder.article(
             uuid(), '🧐 Ваши браки', {
                 description: 'Посмотреть список ваших браков',
-                reply_markup: generateKeyboard(ctx.from.id, 0)})
+                reply_markup: generateKeyboard(ctx.from.id, 1)})
             .text(await formatMarriages(ctx.from, await getMarriages(ctx.from.id, 0), bot, 1), {
                 parse_mode: 'MarkdownV2',
                 link_preview_options: {
