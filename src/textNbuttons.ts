@@ -1,7 +1,6 @@
 import {InlineKeyboard} from "grammy";
 import {generateMention, stringifyMention} from "./mention";
-import {User} from "grammy/types";
-import {ChatFullInfo} from "grammy/out/types";
+import {ChatFullInfo, User} from "grammy/types";
 import humanizeDuration from "humanize-duration";
 
 export function requestMarriageText(mention: string | User, from: User) {
