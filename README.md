@@ -79,7 +79,7 @@
 
 ## Contact the creator
 
-[Telegram](https://t.me/vandi37)
+[Telegram](https://t.me/aBarrelOfLiter)
 
 ## Test the bot
 
