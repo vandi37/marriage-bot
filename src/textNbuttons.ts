@@ -12,6 +12,15 @@ export function requestMarriageButtons(mention: string | User, from: User) {
         .text('💝 Согласиться', `answer_${from.id}_${stringifyMention(mention)}`)
         .text('💔 Отказаться', `deny_${from.id}_${stringifyMention(mention)}`)
 }
+
+export function requestRandomMarriageText(from: User) {
+    return `💍 Если хотите брак с ${generateMention(from)}`
+}
+export function requestRandomMarriageButtons(from: User){
+    return new InlineKeyboard()
+        .text('👉 Нажмите на эту кнопку', `random_${from.id}`)
+}
+
 export function divorceText(from: User, other: ChatFullInfo) {
     return `😰 ${generateMention(from)}, вы уверены, что хотите развестись с ${generateMention(other)}`
 }

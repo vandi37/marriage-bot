@@ -10,7 +10,7 @@ import {
     divorceText,
     marriageInfoText,
     requestMarriageButtons,
-    requestMarriageText
+    requestMarriageText, requestRandomMarriageButtons, requestRandomMarriageText
 } from "./textNbuttons";
 import logger, {objByCtx} from './logger'
 import escape from "./escape";
@@ -164,6 +164,18 @@ bot.hears(/^брак\s(\d+)$/i, async (ctx) => {
     logger.debug('User got information about marriage', {...objByCtx(ctx),  marriage: marriage})
 })
 
+bot.hears(/^предложение$/i, async (ctx) => {
+    if (ctx.message === undefined) return
+    await ctx.reply(requestRandomMarriageText(ctx.from), {
+        parse_mode: 'MarkdownV2',
+        link_preview_options: {
+            is_disabled: true,
+        },
+        reply_markup: requestRandomMarriageButtons(ctx.from)
+    });
+    logger.debug('User send anonymous request', {...objByCtx(ctx)})
+})
+
 bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
     const [_, senderId, mention] = ctx.match;
 
@@ -199,6 +211,8 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
     if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start=marriage${sender.id}`})
     logger.debug('User got married', {...objByCtx(ctx), marriageId: id, senderId: sender.id})
 });
+
+
 bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
     const [_, senderId, mention] = ctx.match;
     if (!matchesMention(parseMention(mention), ctx.from)) {
@@ -240,7 +254,7 @@ bot.callbackQuery(/^divorce_(\d+)$/, async (ctx) => {
         return null
     }
     const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
-    const russianDuration = humanizeDuration(marriage.createdAt.valueOf() - Date.now(), {
+        const russianDuration = humanizeDuration(marriage.createdAt.valueOf() - Date.now(), {
         language: 'ru',
         largest: 2
     })
@@ -302,6 +316,37 @@ bot.callbackQuery(/^view_(\d+)_(\d+)$/, async (ctx) => {
     logger.debug('User watched next page of marriages', {...objByCtx(ctx), page: +page, viewingId: +userId})
 })
 
+bot.callbackQuery(/^anoymous_(-?\d+)$/, async (ctx) => {
+    const [_, senderId] = ctx.match;
+
+    const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
+    if (await Marriage.marriageExists(+senderId,ctx.from.id)) {
+        await ctx.editMessageText(`❌ ${generateMention(ctx.from)} и ${generateMention(sender)} уже вместе`, {
+            reply_markup: new InlineKeyboard(),
+            parse_mode: 'MarkdownV2',
+            link_preview_options: {
+                is_disabled: true,
+            }
+        })
+        logger.debug('User is already married', {...objByCtx(ctx), otherId: sender.id})
+        return
+    }
+    const {id} = await Marriage.create({
+        user1: sender.id,
+        user2: ctx.from.id,
+    })
+
+    await ctx.editMessageText(`💍 зарегистрирован брак \\#\`${id}\`\\.\n${generateMention(ctx.from)} принял предложение о браке с ${generateMention(sender)}`, {
+        reply_markup: new InlineKeyboard(),
+        parse_mode: 'MarkdownV2',
+        link_preview_options: {
+            is_disabled: true,
+        }
+    })
+    if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start=marriage${sender.id}`})
+    logger.debug('User got married', {...objByCtx(ctx), marriageId: id, senderId: sender.id})
+})
+
 bot.inlineQuery(/^$/, async (ctx) => {
     await ctx.answerInlineQuery([
         InlineQueryResultBuilder.article(
@@ -314,6 +359,11 @@ bot.inlineQuery(/^$/, async (ctx) => {
                     is_disabled: true,
                 },
             }),
+        InlineQueryResultBuilder.article(
+            uuid(), '🎰 Предложение', {
+                description: 'Тот кто нажмёт на кнопку получит брак с тобой',
+                reply_markup: requestRandomMarriageButtons(ctx.from)
+            }).text(requestRandomMarriageText(ctx.from))
     ], {cache_time: 1})
     logger.debug('Sent inline query with paginated marriages info', objByCtx(ctx))
 })
