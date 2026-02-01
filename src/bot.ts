@@ -234,7 +234,7 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
 bot.callbackQuery(/^deny_(\d+)_(\w+)$/, async (ctx) => {
     const [_, senderId, mention] = ctx.match;
     if (!matchesMention(parseMention(mention), ctx.from)) {
-        await ctx.answerCallbackQuery({text: '❌ Это не для тебя', show_alert: true})
+        await ctx.answerCallbackQuery('❌ Это не для тебя')
         logger.silly('User touched wrong callback query', objByCtx(ctx))
         return
     }
@@ -339,8 +339,7 @@ bot.callbackQuery(/^anyone_(-?\d+)$/, async (ctx) => {
 
     const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
     if (await Marriage.marriageExists(+senderId,ctx.from.id)) {
-        await ctx.answerCallbackQuery(`❌ Вы уже в браке с ${sender.first_name}`, {
-        })
+        await ctx.answerCallbackQuery({text: `❌ Вы уже в браке с ${sender.first_name}`, show_alert: true});
         logger.debug('User is already married', {...objByCtx(ctx), otherId: sender.id})
         return
     }
