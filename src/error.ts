@@ -1,5 +1,5 @@
-import { GrammyError } from "grammy"
-import { ChatFullInfo } from "grammy/types"
+    import { GrammyError } from "grammy"
+    import { ChatFullInfo } from "grammy/types"
 
 export function getChatError(id: number): (err: any) => ChatFullInfo {
     return err => {

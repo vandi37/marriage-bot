@@ -9,7 +9,7 @@
 
 ## Project info
 
-- This project is created by [vandi](https://github.com/vandi37)
+- This project is created by [vandi/barrel](https://github.com/vandi37)
 - It's a simple telegram bot used for creating multiple online marriages between different users
   - The bot has a russian interface
   - The bot has an inline mode for simpler usage without adding it to chats
@@ -26,19 +26,22 @@
    - shows information about all your marriages
 5. стата
    - shows information about the bot database (total number of marriages and total number of unique users)
-6. все браки
+6. предложение
+    - creates a button that allows anyone to marriage the sender by clicking on it
+7. все браки
    - a command only for the creator
    - sends a json file with data about all marriages
 
 ### inline mode
 
 1. @{bot username}
-   - shows information about all your marriages
+   1. shows information about all your marriages (все браки)
+   2. sends a anyone-marriage button (предложение)
 2. @{bot username} {marriage id}
-   1. sends a confirm button to confirm the divorce
-   2. shows information about the marriage
+   1. sends a confirm button to confirm the divorce (-брак/развод)
+   2. shows information about the marriage (брак)
 3. @{bot username} @mention
-   - sends a marriage request with a confirm button for the other person
+   - sends a marriage request with a confirm button for the other person (+брак)
 
 ## Quick start
 
