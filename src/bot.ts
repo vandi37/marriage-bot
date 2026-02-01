@@ -45,6 +45,23 @@ start().catch((err) => {
 })
 
 bot.command('start', async (ctx) => {
+    if (ctx.message === undefined) return
+    const match =  ctx.match.match(/^marriage(\d+)$/)
+    if (match) {
+        const [_, marriageId] = match;
+        const marriage = await Marriage.findByPk(+marriageId);
+        if (marriage) {
+            const other = await bot.api.getChat(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1).catch(getChatError(marriage.user1 === ctx.from.id ? marriage.user2 : marriage.user1));
+            await ctx.reply(`💍 зарегистрирован брак \\#\`${marriageId}\`\\.\n${generateMention(ctx.from)} принял предложение о браке с ${generateMention(other)}`, {
+                parse_mode: 'MarkdownV2',
+                link_preview_options: {
+                    is_disabled: true,
+                }
+            })
+            logger.silly('User vied their new marriage', objByCtx(ctx))
+            return
+        }
+    }
     await ctx.reply(`🔰 Привет! Я бот для браков!\n/help для полной информации`)
     logger.silly('Sent start info', objByCtx(ctx))
 })
@@ -209,7 +226,7 @@ bot.callbackQuery(/^answer_(\d+)_(\w+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start=marriage${sender.id}`})
+    if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start=marriage${id}`})
     logger.debug('User got married', {...objByCtx(ctx), marriageId: id, senderId: sender.id})
 });
 
@@ -317,7 +334,7 @@ bot.callbackQuery(/^view_(\d+)_(\d+)$/, async (ctx) => {
     logger.debug('User watched next page of marriages', {...objByCtx(ctx), page: +page, viewingId: +userId})
 })
 
-bot.callbackQuery(/^anoymous_(-?\d+)$/, async (ctx) => {
+bot.callbackQuery(/^anyone_(-?\d+)$/, async (ctx) => {
     const [_, senderId] = ctx.match;
 
     const sender = await bot.api.getChat(+senderId).catch(getChatError(+senderId));
@@ -344,7 +361,7 @@ bot.callbackQuery(/^anoymous_(-?\d+)$/, async (ctx) => {
             is_disabled: true,
         }
     })
-    if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start=marriage${sender.id}`})
+    if (ctx.inlineMessageId) await ctx.answerCallbackQuery({url: `https://t.me/${bot.botInfo.username}?start=marriage${id}`})
     logger.debug('User got married', {...objByCtx(ctx), marriageId: id, senderId: sender.id})
 })
 
@@ -364,7 +381,12 @@ bot.inlineQuery(/^$/, async (ctx) => {
             uuid(), '🎰 Предложение', {
                 description: 'Тот кто нажмёт на кнопку получит брак с тобой',
                 reply_markup: requestRandomMarriageButtons(ctx.from)
-            }).text(requestRandomMarriageText(ctx.from))
+            }).text(requestRandomMarriageText(ctx.from), {
+            parse_mode: 'MarkdownV2',
+            link_preview_options: {
+                is_disabled: true,
+            },
+        })
     ], {cache_time: 1})
     logger.debug('Sent inline query with paginated marriages info', objByCtx(ctx))
 })

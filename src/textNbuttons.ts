@@ -18,7 +18,7 @@ export function requestRandomMarriageText(from: User) {
 }
 export function requestRandomMarriageButtons(from: User){
     return new InlineKeyboard()
-        .text('👉 Нажмите на эту кнопку', `random_${from.id}`)
+        .text('👉 Нажмите на эту кнопку', `anyone_${from.id}`)
 }
 
 export function divorceText(from: User, other: ChatFullInfo) {
