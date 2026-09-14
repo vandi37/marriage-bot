@@ -9,7 +9,6 @@
 
 ## Project info
 
-- This project is created by [vandi/barrel](https://github.com/vandi37)
 - It's a simple telegram bot used for creating multiple online marriages between different users
   - The bot has a russian interface
   - The bot has an inline mode for simpler usage without adding it to chats
@@ -82,7 +81,7 @@
 
 ## Contact the creator
 
-[Telegram](https://t.me/aBarrelOfLiter)
+[Telegram](https://t.me/vandi37)
 
 ## Test the bot
 
